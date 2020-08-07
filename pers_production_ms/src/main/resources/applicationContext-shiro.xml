@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <!-- web.xml中shiro的filter对应的bean -->
+    <!-- Shiro 的Web过滤器 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+
+        <property name="securityManager" ref="securityManager"/>
+        <!-- loginUrl认证提交地址，
+            如果没有认证,将会请求此地址进行认证，请求此地址将由 formAuthenticationFilter进行表单认证 -->
+        <property name="loginUrl" value="/login"/>
+
+        <!-- 认证成功统一跳转到此地址,建议不配置，shiro认证成功自动到上一个请求路径-->
+        <property name="successUrl" value="/home"/>
+        <!-- 通过unauthorizedUrl指定没有权限操作时跳转页面-->
+        <property name="unauthorizedUrl" value="/refuse.jsp"/>
+
+        <property name="filters">
+            <map>
+                <entry key="authc">
+                    <bean class="com.cskaoyan.shiro.ExtendFormAuthenticationFilter"/>
+                </entry>
+            </map>
+        </property>
+
+        <!-- shiro连接约束配置,在这里使用自定义的 从数据库中动态获取资源 -->
+        <property name="filterChainDefinitionMap" ref="chainDefinitionSectionMetaSource"/>
+
+    </bean>
+    <!-- 自定义对 shiro的连接约束,结合shiroSecurityFilter实现从数据库中动态获取资源,  默认的连接配置 -->
+    <bean id="chainDefinitionSectionMetaSource" class="com.cskaoyan.shiro.ChainDefinitionSectionMetaSource">
+
+        <!-- 上面的标签从数据库中取权限信息, 下面的标签的权限信息就卸载xml文件里面,选择一种使用即可 -->
+        <!-- 上行的配置的覆盖下行的配置的 -->
+
+        <!-- 过虑器链定义，从上向下顺序执行，一般将/**放在最下边 -->
+        <property name="filterChainDefinitions">
+            <value>
+                <!--anon 匿名的 -->
+                /file/** = anon
+                /pic/** = anon
+                /css/** = anon
+                /js/** = anon
+                /image/** = anon
+                /validatecode.jsp = anon
+                /favicon.ico = anon
+                /logout = logout
+                <!--/** = authc-->
+            </value>
+        </property>
+    </bean>
+
+    <!-- securityManager安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="customRealm"/>
+        <property name="cacheManager" ref="cacheManager"/>
+        <!--<property name="sessionManager" ref="sessionManager"></property>-->
+    </bean>
+
+    <!-- realm -->
+    <bean id="customRealm" class="com.cskaoyan.shiro.CustomRealm">
+        <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
+        <!--<property name="credentialsMatcher" ref="credentialsMatcher"/>-->
+    </bean>
+
+
+    <!-- 缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:spring/shiro-ehcache.xml"/>
+    </bean>
+
+    <!--&lt;!&ndash;shiro自己的session管理器&ndash;&gt;-->
+    <!--<bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">-->
+    <!--<property name="globalSessionTimeout" value="60000"></property>-->
+    <!--<property name="deleteInvalidSessions" value="true"></property>-->
+    <!--</bean>-->
+
+
+    <!--&lt;!&ndash; 凭证匹配器 &ndash;&gt;-->
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <!--<property name="hashAlgorithmName" value="md5"></property>-->
+        <!--<property name="hashIterations" value="1"></property>-->
+    </bean>
+
+</beans>

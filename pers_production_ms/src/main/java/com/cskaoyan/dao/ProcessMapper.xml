@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cskaoyan.dao.ProductMapper" >
+  <resultMap id="BaseResultMap" type="com.cskaoyan.domain.Process" >
+    <id column="process_id" property="processId" jdbcType="VARCHAR" />
+    <result column="technology_plan_id" property="technologyPlanId" jdbcType="VARCHAR" />
+    <result column="sequence" property="sequence" jdbcType="INTEGER" />
+    <result column="quota" property="quota" jdbcType="INTEGER" />
+  </resultMap>
+  
+  <!-- 扩展的sql -->
+  <!-- 批量删除 -->
+	<delete id="deleteBatch">
+		DELETE
+		FROM
+			product
+		WHERE
+			product_id IN
+		<foreach collection="array" item="id" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<!-- 修改状态，批量启用停用-->
+	<update id="changeStatus">
+		UPDATE product
+		SET status = #{status}
+		WHERE
+			product_id IN
+		<foreach collection="ids" item="id" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</update>
+	
+	<!-- 修改备注-->
+	<update id="updateNote" parameterType="com.cskaoyan.domain.Product" >
+		UPDATE product
+		SET note = #{note}
+		WHERE
+			product_id = #{productId,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 进行修改 -->
+	<select id="selectById" parameterType="string" resultMap="BaseResultMap">
+		SELECT
+			*
+		FROM
+			process
+		WHERE
+			process_id LIKE CONCAT(
+				'%',
+				#{searchValue},'%' ) 
+	</select>
+	
+	<select id="searchProductByProductName" parameterType="string" resultMap="BaseResultMap">
+		SELECT
+			*
+		FROM
+			product
+		WHERE
+			product_name LIKE CONCAT(
+				'%',
+				#{productName},'%' ) 
+	</select>
+	
+	<select id="searchProductByProductType" parameterType="string" resultMap="BaseResultMap">
+		SELECT
+			*
+		FROM
+			product
+		WHERE
+			product_type LIKE CONCAT(
+				'%',
+				#{productType},'%' ) 
+	</select>
+	
+	
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    process_id, technology_plan_id, sequence, quota
+  </sql>
+  <!-- 进行替换(完成） -->
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.cskaoyan.domain.Process" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from process
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <!-- 进行替换(完成） -->
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from process
+    where process_id = #{processId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from product
+    where product_id = #{productId,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.cskaoyan.domain.ProductExample" >
+    delete from product
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <!-- 进行替换(完成） -->
+  <insert id="insert" parameterType="com.cskaoyan.domain.Process" >
+    insert into product (process_id, technology_plan_id, sequence, 
+      quota
+      )
+    values (#{processId,jdbcType=VARCHAR}, #{technologyPlanId,jdbcType=VARCHAR}, #{sequence,jdbcType=INTEGER}, 
+      #{quota,jdbcType=INTEGER})
+  </insert>
+  <!-- 进行替换(完成） -->
+  <insert id="insertSelective" parameterType="com.cskaoyan.domain.Process" >
+    insert into process
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="processId != null" >
+        process_id,
+      </if>
+      <if test="technologyPlanId != null" >
+        technology_plan_id,
+      </if>
+      <if test="sequence != null" >
+        sequence,
+      </if>
+      <if test="quota != null" >
+        quota,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="processId != null" >
+        #{process_id,jdbcType=VARCHAR},
+      </if>
+      <if test="technologyPlanId != null" >
+        #{technology_plan_id,jdbcType=VARCHAR},
+      </if>
+      <if test="sequence != null" >
+        #{sequence,jdbcType=INTEGER},
+      </if>
+      <if test="quota != null" >
+        #{quota,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.cskaoyan.domain.ProductExample" resultType="java.lang.Integer" >
+    select count(*) from product
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update product
+    <set >
+      <if test="record.productId != null" >
+        product_id = #{record.productId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productName != null" >
+        product_name = #{record.productName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productType != null" >
+        product_type = #{record.productType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.image != null" >
+        image = #{record.image,jdbcType=VARCHAR},
+      </if>
+      <if test="record.note != null" >
+        note = #{record.note,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update product
+    set product_id = #{record.productId,jdbcType=VARCHAR},
+      product_name = #{record.productName,jdbcType=VARCHAR},
+      product_type = #{record.productType,jdbcType=VARCHAR},
+      image = #{record.image,jdbcType=VARCHAR},
+      note = #{record.note,jdbcType=VARCHAR},
+      status = #{record.status,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  
+  <!-- 进行修改（完成） -->
+   <select id="selectALL" resultMap="BaseResultMap">
+    SELECT * FROM process
+  </select>
+  
+  <!-- 进行替换（完成） -->
+  <update id="updateByPrimaryKeySelective" parameterType="com.cskaoyan.domain.Process" >
+    update process
+    <set >
+      <if test="processId != null" >
+        process_id = #{processId,jdbcType=VARCHAR},
+      </if>
+      <if test="technologyPlanId != null" >
+        technology_plan_id = #{technologyPlanId,jdbcType=VARCHAR},
+      </if>
+      <if test="sequence != null" >
+        sequence = #{sequence,jdbcType=INTEGER},
+      </if>
+      <if test="quota != null" >
+        quota = #{quota,jdbcType=INTEGER},
+      </if>   
+    where process_id = #{processId,jdbcType=VARCHAR}
+    </set>
+  </update>
+  <!-- 进行替换（完成） -->
+  <update id="updateByPrimaryKey" parameterType="com.cskaoyan.domain.Process" >
+    update process
+    set process_id = #{processId,jdbcType=VARCHAR},
+      technology_plan_id = #{technologyPlanId,jdbcType=VARCHAR},
+      sequence = #{sequence,jdbcType=INTEGER},
+      quota = #{quota,jdbcType=INTEGER},
+    where process_id = #{processId,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 进行修改（完成） -->
+  <select id="selectByTechnologyPlanId" parameterType="string" resultMap="BaseResultMap">
+		SELECT
+			process_id,
+			technology_plan_id,
+			sequence,
+			quota,
+		FROM
+			process
+		WHERE
+			technology_plan_id LIKE CONCAT(
+				'%',
+				#{technologyPlanId},'%' ) 
+		ORDER BY
+			technology_plan_id ASC
+	</select>
+</mapper>
